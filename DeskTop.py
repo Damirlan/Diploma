@@ -180,7 +180,7 @@ class PageOne(tk.Frame):
         play_before_button2.grid(column=1, row=2, sticky=NSEW, padx=10)
         button1 = tk.Button(self, text='Вернуться на главный',
                             command=lambda: controller.show_frame(StartPage))
-        button1.grid(column=0, row=3, sticky=NSEW, padx=10)
+        button1.grid(column=3, row=0, sticky=NSEW, padx=10)
 
         button2 = tk.Button(self, text='Создать',
                             command=lambda: controller.show_frame(PageTwo))
@@ -201,7 +201,7 @@ class PageOne(tk.Frame):
 
     def show_graphics1(self, sr, data):
         fm = FourieMethod()
-        fig, ax = plt.subplots(2, 2, figsize=(20, 10))
+        fig, ax = plt.subplots(2, 2, figsize=(18, 8))
         filtr_data = fm.filtr(data, sr)
         ax[0][0].set_title('звуковая запись')
         ax[0][0].set_xlabel("время")
@@ -215,20 +215,20 @@ class PageOne(tk.Frame):
 
         x, y = fm.get_magnitude_spectrum1(data, sr)
 
-        filtr_data = filtr_data
-        sr = sr
-        data = data
+        self.filtr_data = filtr_data
+        self.sr = sr
+        self.data = data
         ax[1][0].set_title('спектр частот')
         ax[1][0].set_xlabel("частота(Гц)")
         ax[1][0].set_ylabel("амплитуда")
-        ax[1][0].plot(x[x > 0], y[x > 0])
+        ax[1][0].plot(x[x > 0], y[x > 0]*0.1125)
 
 
 
         ax[1][1].set_title('спектр длин волн')
         ax[1][1].set_xlabel("длина волны")
         ax[1][1].set_ylabel("амплитуда")
-        ax[1][1].plot(1 / x[x > 0], y[x > 0])
+        ax[1][1].plot(1 / x[x > 0], y[x > 0]*0.1125)
         # ax[2].plot(x, abs(y))
         if 'self.canvas' in locals():
             print(123)
@@ -297,7 +297,7 @@ class PageTwo(tk.Frame):
 
         button1 = tk.Button(self, text='Вернуться на главный',
                             command=lambda: controller.show_frame(StartPage))
-        button1.grid(column=0, row=5, sticky=NSEW, padx=10)
+        button1.grid(column=2, row=0, sticky=NSEW, padx=10)
 
         play_before_button = ttk.Button(self, text="Подтвердить", command=self.insert_wave)
         play_before_button.grid(column=1, row=5, sticky=NSEW, padx=10)
@@ -337,11 +337,11 @@ class PageTwo(tk.Frame):
         else:
             self.show_wave()
 
-    def generate_sine_wave(self, freq, phase, sample_rate, duration):
+    def generate_sine_wave(self, ampl, freq, phase, sample_rate, duration):
         x = np.linspace(0, duration, sample_rate * duration, endpoint=False)
         frequencies = x * freq
         # 2pi для преобразования в радианы
-        y = np.sin((np.pi) * frequencies + phase)
+        y = ampl * np.sin((np.pi) * frequencies + phase)
         return x, y
 
     def show_wave(self):
@@ -359,9 +359,9 @@ class PageTwo(tk.Frame):
                 dur_phase = np.pi
             elif self.mas_phase[i] == "3pi/2":
                 dur_phase = 1.5*np.pi
-            x, y = self.generate_sine_wave(int(self.mas_freq[i]), dur_phase, int(self.sr_input.get()), int(self.time_input.get()))
+            x, y = self.generate_sine_wave(int(self.mas_ampl[i]), int(self.mas_freq[i]), dur_phase, int(self.sr_input.get()), int(self.time_input.get()))
             sum_wave = sum_wave + y
-            formula = formula + '+sin(' + str(self.mas_freq[i]) + 't + ' + self.mas_phase[i] + ')'
+            formula = formula + '+' + str(self.mas_ampl[i]) + 'sin(' + str(self.mas_freq[i]) + 't + ' + self.mas_phase[i] + ')'
 
         x, y = fm.get_magnitude_spectrum1(sum_wave, int(self.sr_input.get()))
         ax[0].set_title(formula)
@@ -373,8 +373,9 @@ class PageTwo(tk.Frame):
         ax[1].set_xlabel("частота (Гц)")
         ax[1].set_ylabel("амплитуда")
         #ax[1].label('Амплитудно-частотная характеристика')
-        ax[1].plot(x[x>0], y[x>0])
-        print(x[y>10])
+        ax[1].plot(x[x>0], y[x>0]/5512.5)
+        print((y[x>0]/5512.5)[y[x>0]/5512.5>10])
+        print(np.abs(y[x>0])[y[x>0]>10])
 
         canvas = FigureCanvasTkAgg(fig)
         canvas.draw()
